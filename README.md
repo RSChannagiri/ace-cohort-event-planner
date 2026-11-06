@@ -107,6 +107,14 @@ The suite covers:
 - **Routes:** every page requires login, every page renders, CSRF (including empty tokens), RSVP and attendance flows end to end, 404s
 - **Seed:** counts, determinism, PD on first Thursdays, no conflicts anywhere in the generated term
 
+### Continuous integration
+
+The CI workflow (ruff + pytest on Python 3.12) lives in [`ci/github-actions-ci.yml`](ci/github-actions-ci.yml). It is parked outside `.github/workflows/` because the token used to publish this repo does not have GitHub's `workflow` permission. To turn it on, move it into place and push from an account with that permission:
+
+```bash
+mkdir -p .github/workflows && git mv ci/github-actions-ci.yml .github/workflows/ci.yml
+```
+
 ## Tech stack
 
 Python 3.12, Flask 3, SQLAlchemy 2 with Flask-SQLAlchemy, SQLite, Jinja2, plain CSS (no JavaScript framework), Faker, pytest, ruff.
