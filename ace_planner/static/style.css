@@ -81,7 +81,7 @@ ul.plain li:last-child { border-bottom: 0; }
            color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .legend { display: flex; gap: 1rem; flex-wrap: wrap; font-size: .85rem; color: var(--ink-2); margin: .5rem 0 1rem; }
 /* bar charts */
-.bars { display: grid; grid-template-columns: minmax(130px, 210px) 1fr 3.6rem; gap: .5rem .75rem; align-items: center; }
+.bars { display: grid; grid-template-columns: 220px minmax(200px, 1fr) 4rem; gap: .5rem .75rem; align-items: center; }
 .bars .lbl { font-size: .88rem; color: var(--ink); }
 .bars .track { position: relative; height: 18px; background: #f0efec; border-radius: 0 4px 4px 0; }
 .bars .fill { height: 100%; background: #2a78d6; border-radius: 0 4px 4px 0; }

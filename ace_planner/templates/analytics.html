@@ -15,7 +15,7 @@
 {% block content %}
 <h1>Attendance analytics</h1>
 <p class="sub">Overall attendance is <strong>{{ overall.percent }}%</strong> across {{ overall.total }} recorded check-ins. Dashed line marks the 60% at-risk threshold.</p>
-<div class="grid two">
+<div class="grid">
   <div class="card"><h2>By event type</h2>{{ bars(rates.by_type) }}</div>
   <div class="card"><h2>By cohort</h2>{{ bars(rates.by_cohort) }}</div>
   <div class="card"><h2>By month</h2>{{ bars(rates.by_month, fmt=month_label) }}</div>

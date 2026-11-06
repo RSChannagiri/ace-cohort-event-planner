@@ -52,6 +52,13 @@ ROOMS = [
 MAJORS = ["MIS", "Finance", "Marketing", "Accounting", "Economics", "Computer Science",
           "Psychology", "Communication", "Biology", "Mechanical Engineering"]
 ROLES = ["speaker", "speaker", "recruiter", "recruiter", "alumni", "faculty"]
+TITLES = {
+    "speaker": ["Director of Product Management", "VP of Operations", "Senior Data Analyst",
+                "Head of Customer Success"],
+    "recruiter": ["University Recruiting Lead", "Technical Recruiter", "Campus Talent Partner"],
+    "alumni": ["Business Systems Analyst", "Associate Product Manager"],
+    "faculty": ["Lecturer, Information Systems", "Career Coach"],
+}
 
 
 def _at(day: date, hour: int, minute: int = 0) -> datetime:
@@ -110,7 +117,7 @@ def seed_database(now: datetime = DEMO_NOW, reset: bool = False) -> dict[str, in
         company = fake.company()
         domain = company.split()[0].lower().strip(",").replace("'", "") + ".example.com"
         contacts.append(Contact(
-            name=name, company=company, title=fake.job()[:120], role=role,
+            name=name, company=company, title=rng.choice(TITLES[role]), role=role,
             email=f"{name.split()[0].lower()}@{domain}"))
     db.session.add_all(contacts)
     db.session.commit()
