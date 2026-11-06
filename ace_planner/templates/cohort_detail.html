@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_macros.html" import rate_cell, risk_badge %}
+{% block title %}{{ cohort.name }}{% endblock %}
+{% block content %}
+<h1><span class="dot" style="background:{{ cohort.color }}"></span>{{ cohort.name }}</h1>
+<p class="sub">{{ cohort.students|length }} students · graduating {{ cohort.year }} ·
+  <a href="{{ url_for('main.cohort_ics', cohort_id=cohort.id) }}">.ics feed</a> ·
+  <a href="{{ url_for('main.calendar_page', cohort=cohort.id) }}">calendar</a></p>
+<div class="grid two">
+<div class="card" style="grid-column: span 2">
+  <h2>Roster and participation</h2>
+  <table>
+    <thead><tr><th>Student</th><th>Major</th><th class="num">Attended</th><th style="width:30%">Rate</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for p in rows %}
+    <tr><td><a href="{{ url_for('main.student_detail', student_id=p.student.id) }}">{{ p.student.full_name }}</a></td>
+      <td>{{ p.student.major }}</td><td class="num">{{ p.attended }} / {{ p.required_events }}</td>
+      <td>{{ rate_cell(p) }}</td><td>{{ risk_badge(p) }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+</div>
+<div class="card">
+  <h2>Next up for {{ cohort.name }}</h2>
+  <ul class="plain">{% for ev in upcoming %}
+    <li><a href="{{ url_for('main.event_detail', event_id=ev.id) }}">{{ ev.title }}</a> <span class="meta">{{ ev.start.strftime('%a %b %-d, %-I:%M %p') }}</span></li>
+  {% else %}<li class="muted">Nothing scheduled.</li>{% endfor %}</ul>
+</div>
+{% endblock %}

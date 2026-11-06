@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, cohort_dots, rsvp_badge %}
+{% block title %}{{ event.title }}{% endblock %}
+{% block content %}
+<h1>{{ event.title }}</h1>
+<p class="sub">{{ event.type_label }} · {{ event.start.strftime('%A, %B %-d, %Y · %-I:%M %p') }} to {{ event.end.strftime('%-I:%M %p') }}
+  · {{ event.room.name if event.room else 'Off-site' }} · {{ 'Required' if event.required else 'Optional' }}</p>
+<p>{{ cohort_dots(event.cohorts) }}</p>
+{% if rule_text %}<p class="meta">Part of a series of {{ series_count }}: {{ rule_text }}</p>{% endif %}
+{% if event.description %}<p>{{ event.description }}</p>{% endif %}
+<div class="grid tiles">
+  <div class="tile"><div class="label">Going</div><div class="value">{{ going|length }}</div><div class="note">{% if event.effective_capacity %}of {{ event.effective_capacity }} seats{% else %}no seat limit{% endif %}</div></div>
+  <div class="tile"><div class="label">Waitlist</div><div class="value">{{ waitlist|length }}</div><div class="note">auto-promoted when seats open</div></div>
+  <div class="tile"><div class="label">Invited</div><div class="value">{{ event.invited_students|length }}</div></div>
+  {% if event.attendance %}<div class="tile"><div class="label">Attended</div><div class="value">{{ event.attendance|selectattr('present')|list|length }}</div><div class="note">of {{ event.attendance|length }} marked</div></div>{% endif %}
+</div>
+<div class="grid two">
+<div class="card">
+  <h2>RSVPs</h2>
+  {% if not started %}
+  <form method="post" action="{{ url_for('main.event_rsvp', event_id=event.id) }}" class="filters">
+    {{ csrf() }}
+    <div style="flex:1"><label for="student_id">Add RSVP</label>
+    <select id="student_id" name="student_id">{% for s in eligible %}<option value="{{ s.id }}">{{ s.full_name }} ({{ s.cohort.name }})</option>{% endfor %}</select></div>
+    <button type="submit">RSVP</button>
+  </form>
+  {% else %}<p class="meta">RSVPs are closed because the event has started.</p>{% endif %}
+  <table><thead><tr><th>Student</th><th>Status</th><th></th></tr></thead><tbody>
+  {% for r in going + waitlist %}
+    <tr><td><a href="{{ url_for('main.student_detail', student_id=r.student.id) }}">{{ r.student.full_name }}</a></td>
+      <td>{{ rsvp_badge(r.status) }}{% if r.status == 'waitlisted' %} <span class="meta">#{{ loop.index - going|length }}</span>{% endif %}</td>
+      <td>{% if not started %}<form class="inline" method="post" action="{{ url_for('main.event_cancel', event_id=event.id, student_id=r.student.id) }}">{{ csrf() }}<button class="small secondary">Cancel</button></form>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="3" class="muted">No RSVPs yet.</td></tr>{% endfor %}
+  </tbody></table>
+</div>
+<div>
+  <div class="card">
+    <h2>Actions</h2>
+    {% if started %}<p><a class="btn" href="{{ url_for('main.event_attendance', event_id=event.id) }}">{{ 'Edit' if event.attendance else 'Take' }} attendance</a></p>{% endif %}
+    <form method="post" action="{{ url_for('main.event_capacity', event_id=event.id) }}" class="filters">
+      {{ csrf() }}
+      <div><label for="capacity">Capacity limit</label><input id="capacity" type="number" min="1" name="capacity" value="{{ event.capacity or '' }}"></div>
+      <button type="submit" class="secondary">Update</button>
+    </form>
+    <details><summary>Reschedule this occurrence</summary>
+    <form method="post" action="{{ url_for('main.event_reschedule', event_id=event.id) }}">
+      {{ csrf() }}
+      <div class="row">
+        <div><label>Date</label><input type="date" name="date" value="{{ event.start.strftime('%Y-%m-%d') }}"></div>
+        <div><label>Start</label><input type="time" name="start_time" value="{{ event.start.strftime('%H:%M') }}"></div>
+        <div><label>End</label><input type="time" name="end_time" value="{{ event.end.strftime('%H:%M') }}"></div>
+      </div>
+      <label>Room</label><select name="room_id"><option value="">Off-site / none</option>{% for r in rooms %}<option value="{{ r.id }}" {{ 'selected' if event.room_id == r.id }}>{{ r.name }}</option>{% endfor %}</select>
+      <div class="checks"><label><input type="checkbox" name="allow_conflicts"> Save even if it conflicts</label></div>
+      <p><button type="submit" class="secondary">Reschedule</button></p>
+    </form></details>
+    <form method="post" action="{{ url_for('main.event_delete', event_id=event.id) }}" style="margin-top:1rem" onsubmit="return confirm('Delete?')">
+      {{ csrf() }}
+      {% if event.series_id %}<select name="scope" style="width:auto"><option value="single">Only this occurrence</option><option value="future">This and future occurrences</option></select>{% endif %}
+      <button class="danger small" type="submit">Delete</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2>Speakers and recruiters</h2>
+    <ul class="plain">{% for c in event.contacts %}
+      <li><a href="{{ url_for('main.contact_detail', contact_id=c.id) }}">{{ c.name }}</a>, {{ c.title }} at {{ c.company }} <span class="badge">{{ c.role }}</span>
+      {% for fu in event.followups if fu.contact_id == c.id %}<br><span class="meta">{{ fu.kind|replace('_', '-') }} due {{ fu.due.strftime('%b %-d') }}: {{ 'done' if fu.done else 'open' }}</span>{% endfor %}</li>
+    {% else %}<li class="muted">No contacts linked.</li>{% endfor %}</ul>
+  </div>
+</div>
+</div>
+{% endblock %}

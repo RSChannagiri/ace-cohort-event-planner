@@ -1,0 +1,13 @@
+{% macro csrf() %}<input type="hidden" name="_csrf" value="{{ csrf_token() }}">{% endmacro %}
+{% macro cohort_dots(cohorts) %}{% for c in cohorts|sort(attribute='name') %}<span class="badge"><span class="dot" style="background:{{ c.color }}"></span>{{ c.name }}</span> {% endfor %}{% endmacro %}
+{% macro rate_cell(p) %}
+  {% if p.rate is none %}<span class="muted">No required events yet</span>
+  {% else %}
+  <div style="display:flex;gap:.6rem;align-items:center">
+    <div class="meter {{ 'risk' if p.at_risk }}" style="flex:1"><span style="width:{{ p.percent }}%"></span></div>
+    <span class="num">{{ p.percent }}%</span>
+  </div>
+  {% endif %}
+{% endmacro %}
+{% macro risk_badge(p) %}{% if p.at_risk %}<span class="badge bad">⚑ At risk</span>{% elif p.rate is not none %}<span class="badge good">✓ On track</span>{% endif %}{% endmacro %}
+{% macro rsvp_badge(status) %}<span class="badge {{ {'going':'good','waitlisted':'warn'}.get(status, '') }}">{{ status|capitalize }}</span>{% endmacro %}

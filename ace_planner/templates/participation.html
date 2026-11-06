@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "_macros.html" import rate_cell, risk_badge %}
+{% block title %}Participation{% endblock %}
+{% block content %}
+<h1>Participation</h1>
+<p class="sub">Share of required events each student attended so far. Students under {{ (threshold * 100)|int }}% are flagged at risk.</p>
+<form class="filters" method="get">
+  <div><label for="cohort">Cohort</label>
+  <select id="cohort" name="cohort"><option value="">All cohorts</option>
+    {% for c in cohorts %}<option value="{{ c.id }}" {{ 'selected' if cohort_id == c.id }}>{{ c.name }}</option>{% endfor %}</select></div>
+  <div class="checks"><label><input type="checkbox" name="at_risk" value="1" {{ 'checked' if only_risk }}> At risk only</label></div>
+  <button type="submit" class="secondary">Apply</button>
+</form>
+<div class="card">
+<table>
+  <thead><tr><th>Student</th><th>Cohort</th><th class="num">Attended</th><th class="num">Missed</th><th style="width:28%">Rate</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for p in rows %}
+  <tr><td><a href="{{ url_for('main.student_detail', student_id=p.student.id) }}">{{ p.student.full_name }}</a></td>
+    <td>{{ p.student.cohort.name }}</td><td class="num">{{ p.attended }} / {{ p.required_events }}</td><td class="num">{{ p.missed }}</td>
+    <td>{{ rate_cell(p) }}</td><td>{{ risk_badge(p) }}</td></tr>
+  {% else %}<tr><td colspan="6" class="muted">No students match.</td></tr>{% endfor %}
+  </tbody>
+</table>
+<p class="meta">{{ rows|length }} student(s)</p>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}Follow-ups{% endblock %}
+{% block content %}
+<h1>Follow-up tracker</h1>
+<p class="sub">Thank-you notes are created automatically, due 2 days after each event with a speaker or recruiter.</p>
+{% set titles = {'overdue': ('Overdue', 'bad'), 'due_soon': ('Due in the next 3 days', 'warn'), 'upcoming': ('Upcoming', ''), 'done': ('Done', 'good')} %}
+<div class="grid tiles">{% for key, (label, cls) in titles.items() %}
+  <div class="tile"><div class="label">{{ label }}</div><div class="value">{{ groups[key]|length }}</div></div>{% endfor %}</div>
+{% for key, (label, cls) in titles.items() %}
+<div class="card">
+  <h2>{{ label }}</h2>
+  <table><thead><tr><th>Contact</th><th>Event</th><th>Task</th><th>Due</th><th></th></tr></thead><tbody>
+  {% for fu in groups[key] %}
+  <tr><td><a href="{{ url_for('main.contact_detail', contact_id=fu.contact.id) }}">{{ fu.contact.name }}</a><br><span class="meta">{{ fu.contact.company }}</span></td>
+    <td><a href="{{ url_for('main.event_detail', event_id=fu.event.id) }}">{{ fu.event.title }}</a></td>
+    <td><span class="badge {{ cls }}">{{ fu.kind|replace('_', '-') }}</span> {{ fu.notes }}</td>
+    <td>{{ fu.due.strftime('%b %-d') }}{% if fu.completed_on %}<br><span class="meta">done {{ fu.completed_on.strftime('%b %-d') }}</span>{% endif %}</td>
+    <td>{% if fu.done %}<form class="inline" method="post" action="{{ url_for('main.followup_reopen', fu_id=fu.id) }}">{{ csrf() }}<button class="small secondary">Reopen</button></form>
+        {% else %}<form class="inline" method="post" action="{{ url_for('main.followup_complete', fu_id=fu.id) }}">{{ csrf() }}<button class="small">Mark done</button></form>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="5" class="muted">Nothing here.</td></tr>{% endfor %}
+  </tbody></table>
+</div>
+{% endfor %}
+<form method="post" action="{{ url_for('main.followup_new') }}" class="card">
+  {{ csrf() }}
+  <h2>Log a follow-up</h2>
+  <div class="row">
+    <div><label for="contact_id">Contact</label><select id="contact_id" name="contact_id">{% for c in contacts %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select></div>
+    <div><label for="event_id">Event</label><select id="event_id" name="event_id">{% for e in events %}<option value="{{ e.id }}">{{ e.title }} ({{ e.start.strftime('%b %-d') }})</option>{% endfor %}</select></div>
+    <div><label for="due">Due</label><input id="due" name="due" type="date" required></div>
+  </div>
+  <label for="notes">Notes</label><input id="notes" name="notes" type="text" placeholder="Send internship posting to Cohort 2028">
+  <p><button type="submit">Add follow-up</button></p>
+</form>
+{% endblock %}

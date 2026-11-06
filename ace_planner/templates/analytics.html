@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
+{% macro bars(rows, fmt=None) %}
+<div class="bars" role="table">
+  {% for r in rows %}
+  <div class="lbl" role="cell">{{ fmt(r.label) if fmt else r.label }}</div>
+  <div class="track" role="cell" title="{{ fmt(r.label) if fmt else r.label }}: {{ r.percent }}% ({{ r.present }} of {{ r.total }} present)">
+    <div class="fill" style="width:{{ r.percent }}%"></div>
+    <div class="ref" style="left:60%" aria-hidden="true"></div>
+  </div>
+  <div class="val" role="cell">{{ r.percent }}%</div>
+  {% else %}<div class="muted">No attendance recorded yet.</div>{% endfor %}
+</div>
+{% endmacro %}
+{% block content %}
+<h1>Attendance analytics</h1>
+<p class="sub">Overall attendance is <strong>{{ overall.percent }}%</strong> across {{ overall.total }} recorded check-ins. Dashed line marks the 60% at-risk threshold.</p>
+<div class="grid two">
+  <div class="card"><h2>By event type</h2>{{ bars(rates.by_type) }}</div>
+  <div class="card"><h2>By cohort</h2>{{ bars(rates.by_cohort) }}</div>
+  <div class="card"><h2>By month</h2>{{ bars(rates.by_month, fmt=month_label) }}</div>
+  <div class="card"><h2>Table view</h2>
+    <table><thead><tr><th>Group</th><th>Value</th><th class="num">Present</th><th class="num">Marked</th><th class="num">Rate</th></tr></thead><tbody>
+    {% for key, name in [('by_type','Type'), ('by_cohort','Cohort'), ('by_month','Month')] %}{% for r in rates[key] %}
+      <tr><td>{{ name }}</td><td>{{ month_label(r.label) if key == 'by_month' else r.label }}</td><td class="num">{{ r.present }}</td><td class="num">{{ r.total }}</td><td class="num">{{ r.percent }}%</td></tr>
+    {% endfor %}{% endfor %}
+    </tbody></table>
+  </div>
+</div>
+{% endblock %}

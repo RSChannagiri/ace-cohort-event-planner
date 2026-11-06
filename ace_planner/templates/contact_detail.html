@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}{{ contact.name }}{% endblock %}
+{% block content %}
+<h1>{{ contact.name }} <span class="badge">{{ contact.role }}</span></h1>
+<p class="sub">{{ contact.title }} at {{ contact.company }} · <a href="mailto:{{ contact.email }}">{{ contact.email }}</a></p>
+<div class="grid two">
+<div class="card"><h2>Events</h2><ul class="plain">{% for ev in events %}
+  <li><a href="{{ url_for('main.event_detail', event_id=ev.id) }}">{{ ev.title }}</a> <span class="meta">{{ ev.start.strftime('%b %-d, %Y') }}</span></li>
+{% else %}<li class="muted">Not linked to any events yet.</li>{% endfor %}</ul></div>
+<div class="card"><h2>Follow-ups</h2>
+<table><tbody>{% for fu in contact.followups|sort(attribute='due') %}
+  {% set st = status(fu, today) %}
+  <tr><td><span class="badge {{ {'overdue':'bad','due_soon':'warn','done':'good'}.get(st, '') }}">{{ st|replace('_', ' ')|capitalize }}</span></td>
+    <td>{{ fu.notes or fu.kind }}<br><span class="meta">due {{ fu.due.strftime('%b %-d') }}</span></td>
+    <td>{% if not fu.done %}<form class="inline" method="post" action="{{ url_for('main.followup_complete', fu_id=fu.id) }}">{{ csrf() }}<input type="hidden" name="back" value="{{ request.path }}"><button class="small">Mark done</button></form>{% endif %}</td></tr>
+{% else %}<tr><td class="muted">None.</td></tr>{% endfor %}</tbody></table></div>
+</div>
+{% endblock %}

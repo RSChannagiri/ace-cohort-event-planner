@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Calendar{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+  <h1>{{ title }}</h1>
+  <div>
+    <a class="btn secondary small" href="{{ url_for('main.calendar_page', year=prev[0], month=prev[1], cohort=cohort_id) }}">‹ Prev</a>
+    <a class="btn secondary small" href="{{ url_for('main.calendar_page', cohort=cohort_id) }}">Today</a>
+    <a class="btn secondary small" href="{{ url_for('main.calendar_page', year=next[0], month=next[1], cohort=cohort_id) }}">Next ›</a>
+  </div>
+</div>
+<form class="filters" method="get">
+  <input type="hidden" name="year" value="{{ year }}"><input type="hidden" name="month" value="{{ month }}">
+  <div><label for="cohort">Cohort</label><select id="cohort" name="cohort" onchange="this.form.submit()"><option value="">All cohorts</option>
+    {% for c in cohorts %}<option value="{{ c.id }}" {{ 'selected' if cohort_id == c.id }}>{{ c.name }}</option>{% endfor %}</select></div>
+  <noscript><button type="submit" class="secondary">Show</button></noscript>
+</form>
+<div class="legend">{% for c in cohorts %}<span><span class="dot" style="background:{{ c.color }}"></span>{{ c.name }}</span>{% endfor %}<span><span class="dot" style="background:#74736e"></span>Multiple cohorts</span></div>
+<table class="cal">
+  <thead><tr>{% for d in ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] %}<th>{{ d }}</th>{% endfor %}</tr></thead>
+  <tbody>
+  {% for week in weeks %}<tr>
+    {% for cell in week %}
+    <td class="{{ 'out' if not cell.in_month }} {{ 'today' if cell.date == today }}">
+      <div class="daynum">{{ cell.date.day }}</div>
+      {% for ev in cell.events %}
+        {% set color = ev.cohorts[0].color if ev.cohorts|length == 1 else '#74736e' %}
+        <a class="ev" style="border-left-color:{{ color }}" href="{{ url_for('main.event_detail', event_id=ev.id) }}"
+           title="{{ ev.title }} · {{ ev.start.strftime('%-I:%M %p') }} · {{ ev.room.name if ev.room else 'Off-site' }} · {{ ev.cohorts|map(attribute='name')|join(', ') }}">{{ ev.start.strftime('%-I:%M') }} {{ ev.title }}</a>
+      {% endfor %}
+    </td>
+    {% endfor %}
+  </tr>{% endfor %}
+  </tbody>
+</table>
+{% endblock %}

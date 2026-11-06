@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Cohorts{% endblock %}
+{% block content %}
+<h1>Cohorts</h1>
+<p class="sub">Each cohort has a subscribable calendar feed students can add to Google Calendar or Outlook.</p>
+<div class="card">
+<table>
+  <thead><tr><th>Cohort</th><th class="num">Students</th><th class="num">Avg participation</th><th class="num">At risk</th><th>Calendar feed</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+  <tr>
+    <td><span class="dot" style="background:{{ r.cohort.color }}"></span><a href="{{ url_for('main.cohort_detail', cohort_id=r.cohort.id) }}">{{ r.cohort.name }}</a></td>
+    <td class="num">{{ r.size }}</td>
+    <td class="num">{{ r.avg if r.avg is not none else '–' }}{% if r.avg is not none %}%{% endif %}</td>
+    <td class="num">{% if r.at_risk %}<span class="badge bad">{{ r.at_risk }}</span>{% else %}0{% endif %}</td>
+    <td><a href="{{ url_for('main.cohort_ics', cohort_id=r.cohort.id) }}">Download .ics</a></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

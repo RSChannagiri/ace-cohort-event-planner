@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "_macros.html" import cohort_dots %}
+{% block title %}Events{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center">
+  <h1>Events</h1><a class="btn" href="{{ url_for('main.event_new') }}">+ New event</a>
+</div>
+<form class="filters" method="get">
+  <div><label for="when">When</label><select id="when" name="when">
+    <option value="upcoming" {{ 'selected' if when != 'past' }}>Upcoming</option>
+    <option value="past" {{ 'selected' if when == 'past' }}>Past</option></select></div>
+  <div><label for="type">Type</label><select id="type" name="type"><option value="">All types</option>
+    {% for k, v in type_labels.items() %}<option value="{{ k }}" {{ 'selected' if event_type == k }}>{{ v }}</option>{% endfor %}</select></div>
+  <div><label for="cohort">Cohort</label><select id="cohort" name="cohort"><option value="">All cohorts</option>
+    {% for c in cohorts %}<option value="{{ c.id }}" {{ 'selected' if cohort_id == c.id }}>{{ c.name }}</option>{% endfor %}</select></div>
+  <button type="submit" class="secondary">Filter</button>
+</form>
+<div class="card">
+<table>
+  <thead><tr><th>When</th><th>Event</th><th>Type</th><th>Cohorts</th><th>Room</th><th class="num">Seats</th></tr></thead>
+  <tbody>
+  {% for ev in events %}
+  {% set going = ev.rsvps|selectattr('status', 'equalto', 'going')|list|length %}
+  <tr><td>{{ ev.start.strftime('%a %b %-d') }}<br><span class="meta">{{ ev.start.strftime('%-I:%M %p') }}–{{ ev.end.strftime('%-I:%M %p') }}</span></td>
+    <td><a href="{{ url_for('main.event_detail', event_id=ev.id) }}">{{ ev.title }}</a>{% if not ev.required %} <span class="badge">Optional</span>{% endif %}</td>
+    <td>{{ ev.type_label }}</td><td>{{ cohort_dots(ev.cohorts) }}</td>
+    <td>{{ ev.room.name if ev.room else 'Off-site' }}</td>
+    <td class="num">{% if ev.effective_capacity %}{{ going }} / {{ ev.effective_capacity }}{% else %}{{ going }}{% endif %}</td></tr>
+  {% else %}<tr><td colspan="6" class="muted">No events match.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_macros.html" import rate_cell, risk_badge, rsvp_badge %}
+{% block title %}{{ student.full_name }}{% endblock %}
+{% block content %}
+<h1>{{ student.full_name }} {{ risk_badge(p) }}</h1>
+<p class="sub">{{ student.major }} · <a href="{{ url_for('main.cohort_detail', cohort_id=student.cohort.id) }}">{{ student.cohort.name }}</a> · {{ student.email }}</p>
+<div class="grid tiles">
+  <div class="tile"><div class="label">Required events attended</div><div class="value">{{ p.attended }} / {{ p.required_events }}</div></div>
+  <div class="tile"><div class="label">Participation</div><div class="value">{{ p.percent if p.percent is not none else '–' }}{% if p.percent is not none %}%{% endif %}</div><div class="note">at-risk below 60%</div></div>
+  <div class="tile"><div class="label">Missed</div><div class="value">{{ p.missed }}</div></div>
+</div>
+<div class="grid two">
+<div class="card">
+  <h2>Attendance history</h2>
+  <table><thead><tr><th>Event</th><th>Date</th><th>Required</th><th>Mark</th></tr></thead><tbody>
+  {% for ev in events %}
+    <tr><td><a href="{{ url_for('main.event_detail', event_id=ev.id) }}">{{ ev.title }}</a></td><td>{{ ev.start.strftime('%b %-d') }}</td>
+      <td>{{ 'Yes' if ev.required else 'Optional' }}</td>
+      <td>{% if ev.id in marks %}{% if marks[ev.id] %}<span class="badge good">✓ Present</span>{% else %}<span class="badge bad">✗ Absent</span>{% endif %}{% else %}<span class="muted">Not taken</span>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="4" class="muted">No past events.</td></tr>{% endfor %}
+  </tbody></table>
+</div>
+<div class="card">
+  <h2>Upcoming RSVPs</h2>
+  <ul class="plain">{% for r in rsvps %}
+    <li>{{ rsvp_badge(r.status) }} <a href="{{ url_for('main.event_detail', event_id=r.event.id) }}">{{ r.event.title }}</a> <span class="meta">{{ r.event.start.strftime('%b %-d') }}</span></li>
+  {% else %}<li class="muted">No RSVPs for upcoming events.</li>{% endfor %}</ul>
+</div>
+</div>
+{% endblock %}

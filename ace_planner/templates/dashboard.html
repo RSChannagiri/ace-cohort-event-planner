@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% from "_macros.html" import cohort_dots, rate_cell %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Program dashboard</h1>
+<p class="sub">Fall term at a glance, as of {{ now.strftime('%A, %B %-d, %Y') }}.</p>
+<div class="grid tiles">
+  <div class="tile"><div class="label">Students</div><div class="value">{{ student_count }}</div><div class="note">across {{ cohorts|length }} cohorts</div></div>
+  <div class="tile"><div class="label">Events this term</div><div class="value">{{ event_count }}</div><div class="note">weekly, PD and one-offs</div></div>
+  <div class="tile"><div class="label">Attendance to date</div><div class="value">{{ overall.percent }}%</div><div class="note">{{ overall.present }} of {{ overall.total }} check-ins</div></div>
+  <div class="tile"><div class="label">At-risk students</div><div class="value">{{ at_risk_count }}</div><div class="note">below 60% of required events</div></div>
+  <div class="tile"><div class="label">Overdue thank-yous</div><div class="value">{{ overdue|length }}</div><div class="note">speaker and recruiter follow-ups</div></div>
+</div>
+<div class="grid two">
+  <div class="card">
+    <h2>Coming up</h2>
+    <ul class="plain">
+    {% for ev in upcoming %}
+      <li><a href="{{ url_for('main.event_detail', event_id=ev.id) }}"><strong>{{ ev.title }}</strong></a><br>
+        <span class="meta">{{ ev.start.strftime('%a %b %-d, %-I:%M %p') }}{% if ev.room %} · {{ ev.room.name }}{% endif %}</span><br>{{ cohort_dots(ev.cohorts) }}</li>
+    {% else %}<li class="muted">No upcoming events.</li>{% endfor %}
+    </ul>
+  </div>
+  <div class="card">
+    <h2>Students to check in with</h2>
+    <table>
+      <thead><tr><th>Student</th><th>Cohort</th><th>Participation</th></tr></thead>
+      <tbody>
+      {% for p in at_risk %}
+        <tr><td><a href="{{ url_for('main.student_detail', student_id=p.student.id) }}">{{ p.student.full_name }}</a></td>
+            <td>{{ p.student.cohort.name }}</td><td>{{ rate_cell(p) }}</td></tr>
+      {% else %}<tr><td colspan="3" class="muted">Nobody is at risk right now.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+    <p><a href="{{ url_for('main.participation_report', at_risk=1) }}">See full at-risk list</a></p>
+  </div>
+</div>
+{% if overdue %}
+<div class="card">
+  <h2>Overdue follow-ups</h2>
+  <ul class="plain">{% for fu in overdue %}
+    <li><span class="badge bad">Overdue</span> {{ fu.contact.name }} ({{ fu.contact.company }}) for <a href="{{ url_for('main.event_detail', event_id=fu.event.id) }}">{{ fu.event.title }}</a>, due {{ fu.due.strftime('%b %-d') }}</li>
+  {% endfor %}</ul>
+  <p><a href="{{ url_for('main.followup_list') }}">Open the follow-up tracker</a></p>
+</div>
+{% endif %}
+{% endblock %}

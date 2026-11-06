@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}Attendance · {{ event.title }}{% endblock %}
+{% block content %}
+<h1>Attendance</h1>
+<p class="sub"><a href="{{ url_for('main.event_detail', event_id=event.id) }}">{{ event.title }}</a> · {{ event.start.strftime('%a %b %-d, %-I:%M %p') }}</p>
+{% if not started %}<div class="flash error">This event has not started yet.</div>{% endif %}
+<form method="post" class="card">
+  {{ csrf() }}
+  <p class="meta">Check everyone who showed up. Unchecked students are recorded absent. Students who RSVP'd are pre-checked when no marks exist yet.</p>
+  <p><button type="button" class="secondary small" onclick="document.querySelectorAll('input[name=present]').forEach(c=>c.checked=true)">Check all</button>
+     <button type="button" class="secondary small" onclick="document.querySelectorAll('input[name=present]').forEach(c=>c.checked=false)">Clear</button></p>
+  <table><thead><tr><th>Present</th><th>Student</th><th>Cohort</th><th>RSVP</th></tr></thead><tbody>
+  {% for s in event.invited_students %}
+  {% set checked = marks.get(s.id) if marks else s.id in going_ids %}
+  <tr><td><input type="checkbox" name="present" value="{{ s.id }}" id="p{{ s.id }}" {{ 'checked' if checked }}></td>
+    <td><label for="p{{ s.id }}" style="margin:0;font-weight:400">{{ s.full_name }}</label></td><td>{{ s.cohort.name }}</td>
+    <td>{{ 'Going' if s.id in going_ids else '' }}</td></tr>
+  {% endfor %}
+  </tbody></table>
+  <p><button type="submit" {{ 'disabled' if not started }}>Save attendance</button></p>
+</form>
+{% endblock %}

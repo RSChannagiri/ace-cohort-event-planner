@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}New event{% endblock %}
+{% macro val(name) %}{{ (form.get(name) or [''])[0] }}{% endmacro %}
+{% block content %}
+<h1>New event</h1>
+<p class="sub">Add a recurrence rule to create a whole series at once. Every occurrence is checked for room and cohort conflicts before anything is saved.</p>
+<form method="post" class="card">
+  {{ csrf() }}
+  <label for="title">Title</label>
+  <input id="title" name="title" type="text" required maxlength="160" value="{{ val('title') }}">
+  <div class="row">
+    <div><label for="event_type">Type</label>
+      <select id="event_type" name="event_type">{% for t in event_types %}<option value="{{ t }}" {{ 'selected' if val('event_type') == t }}>{{ type_labels[t] }}</option>{% endfor %}</select></div>
+    <div><label for="date">Date (first occurrence)</label><input id="date" name="date" type="date" required value="{{ val('date') }}"></div>
+    <div><label for="start_time">Start</label><input id="start_time" name="start_time" type="time" required value="{{ val('start_time') }}"></div>
+    <div><label for="end_time">End</label><input id="end_time" name="end_time" type="time" required value="{{ val('end_time') }}"></div>
+  </div>
+  <label>Cohorts invited</label>
+  <div class="checks">{% for c in cohorts %}<label><input type="checkbox" name="cohort_ids" value="{{ c.id }}" {{ 'checked' if c.id|string in form.get('cohort_ids', []) }}><span class="dot" style="background:{{ c.color }}"></span>{{ c.name }}</label>{% endfor %}</div>
+  <div class="row">
+    <div><label for="room_id">Room</label><select id="room_id" name="room_id"><option value="">Off-site / none</option>
+      {% for r in rooms %}<option value="{{ r.id }}" {{ 'selected' if val('room_id') == r.id|string }}>{{ r.name }} (seats {{ r.capacity }})</option>{% endfor %}</select></div>
+    <div><label for="capacity">Capacity limit</label><input id="capacity" name="capacity" type="number" min="1" value="{{ val('capacity') }}">
+      <div class="hint">Optional. The smaller of this and the room size is used.</div></div>
+  </div>
+  <label for="rrule">Recurrence rule</label>
+  <input id="rrule" name="rrule" type="text" placeholder="FREQ=WEEKLY;BYDAY=TU;UNTIL=20261208" value="{{ val('rrule') }}">
+  <div class="hint">Leave blank for a one-off. Examples: <code>FREQ=WEEKLY;BYDAY=TU;UNTIL=20261208</code>, <code>FREQ=MONTHLY;BYDAY=1TH;COUNT=3</code> (first Thursday).</div>
+  <label for="exdates">Skip dates</label>
+  <input id="exdates" name="exdates" type="text" placeholder="2026-11-26, 2026-11-27" value="{{ val('exdates') }}">
+  <label>Speakers and recruiters</label>
+  <div class="checks">{% for c in contacts %}<label><input type="checkbox" name="contact_ids" value="{{ c.id }}" {{ 'checked' if c.id|string in form.get('contact_ids', []) }}>{{ c.name }} <span class="muted">({{ c.company }})</span></label>{% endfor %}</div>
+  <label for="description">Description</label>
+  <textarea id="description" name="description">{{ val('description') }}</textarea>
+  <div class="checks">
+    <label><input type="checkbox" name="required" {{ 'checked' if not form or form.get('required') }}> Required (counts toward participation)</label>
+    <label><input type="checkbox" name="allow_conflicts" {{ 'checked' if form.get('allow_conflicts') }}> Save even if it conflicts</label>
+  </div>
+  <p><button type="submit">Create event</button> <a class="btn secondary" href="{{ url_for('main.events') }}">Cancel</a></p>
+</form>
+{% endblock %}

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ACE Planner{% endblock %} · ACE Cohort Event Planner</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="{{ url_for('main.dashboard') }}">ACE Event Planner</a>
+    {% if admin %}
+    <nav>
+      {% set ep = request.endpoint or '' %}
+      <a href="{{ url_for('main.dashboard') }}" class="{{ 'active' if ep == 'main.dashboard' }}">Dashboard</a>
+      <a href="{{ url_for('main.calendar_page') }}" class="{{ 'active' if ep == 'main.calendar_page' }}">Calendar</a>
+      <a href="{{ url_for('main.events') }}" class="{{ 'active' if ep.startswith('main.event') }}">Events</a>
+      <a href="{{ url_for('main.cohorts') }}" class="{{ 'active' if ep.startswith('main.cohort') or ep == 'main.student_detail' }}">Cohorts</a>
+      <a href="{{ url_for('main.participation_report') }}" class="{{ 'active' if ep == 'main.participation_report' }}">Participation</a>
+      <a href="{{ url_for('main.contacts') }}" class="{{ 'active' if ep.startswith('main.contact') }}">Contacts</a>
+      <a href="{{ url_for('main.followup_list') }}" class="{{ 'active' if ep.startswith('main.followup') }}">Follow-ups</a>
+      <a href="{{ url_for('main.analytics_page') }}" class="{{ 'active' if ep == 'main.analytics_page' }}">Analytics</a>
+    </nav>
+    <form method="post" action="{{ url_for('main.logout') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="link" type="submit">Log out ({{ admin.username }})</button>
+    </form>
+    {% endif %}
+  </div>
+</header>
+<main class="wrap">
+  {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="flash {{ category }}" role="status">{{ message }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>
