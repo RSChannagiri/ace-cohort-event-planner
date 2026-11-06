@@ -32,7 +32,8 @@ def csrf_token() -> str:
 def check_csrf() -> None:
     if request.method in ("POST", "PUT", "PATCH", "DELETE"):
         sent = request.form.get("_csrf") or request.headers.get("X-CSRF-Token", "")
-        if not hmac.compare_digest(sent, session.get("_csrf", "")):
+        expected = session.get("_csrf", "")
+        if not expected or not hmac.compare_digest(sent, expected):
             abort(400, description="Form expired or invalid. Please reload and try again.")
 
 
